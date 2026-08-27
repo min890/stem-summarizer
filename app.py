@@ -278,7 +278,7 @@ with tab2:
                         res = client.chat.completions.create(
                             messages=[{"role": "user", "content": cmp_prompt}],
                             model=model,
-                            max_tokens=1500
+                            max_tokens=4000
                         )
                         st.markdown("---")
                         st.markdown(res.choices[0].message.content)
