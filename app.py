@@ -28,24 +28,16 @@ def extract_pdf_text(uploaded_file) -> str:
 
 def analyze_paper(paper_text: str, key: str) -> str:
     client = Groq(api_key=key)
-    
-    # Auto-select available model
-    try:
-        available_models = [m.id for m in client.models.list().data]
-        preferred = ["llama-3.3-70b-versatile", "openai/gpt-oss-20b", "llama-3.1-8b-instant", "llama3-8b-8192"]
-        chosen_model = next((m for m in preferred if m in available_models), available_models[0])
-    except Exception:
-        chosen_model = "llama-3.1-8b-instant"
 
     prompt = f"""
-    You are an expert STEM research assistant. Analyze the provided research paper text thoroughly and completely.
+    You are an expert STEM research assistant. Analyze the provided research paper text thoroughly.
 
     STRICT FORMATTING LAWS FOR MATHEMATICS:
     - NEVER use \\boxed{{}}, \\tag{{}}, \\displaystyle, \\bigl, \\Bigr, or square brackets \\[ \\].
     - Display equations MUST use double dollar signs on their own line:
       $$ equation $$
     - Inline symbols/variables MUST use single dollar signs:
-      $\eta$, $\Delta m$, $P_s$, etc.
+      $\\eta$, $\\Delta m$, $P_s$, etc.
     - Write math symbols standardly (e.g., use \\text{{out}} instead of raw code blocks).
 
     STRUCTURE YOUR OUTPUT WITH THESE HEADERS:
@@ -67,13 +59,13 @@ def analyze_paper(paper_text: str, key: str) -> str:
     Summarize constraints, trade-offs, and practical real-world applications.
 
     Paper Text:
-    {paper_text[:30000]}
+    {paper_text[:18000]}
     """
     
     response = client.chat.completions.create(
         messages=[{"role": "user", "content": prompt}],
-        model=chosen_model,
-        max_tokens=4096,
+        model="llama-3.3-70b-versatile",  # High token capacity model on Groq
+        max_tokens=3500,
         temperature=0.2
     )
     return response.choices[0].message.content
