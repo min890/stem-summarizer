@@ -1,0 +1,91 @@
+import streamlit as st
+from pypdf import PdfReader
+from groq import Groq
+
+# Set page layout & style
+st.set_page_config(
+    page_title="STEM Paper Summarizer",
+    page_icon="🧪",
+    layout="wide"
+)
+
+st.title("🧪 STEM Research Paper Summarizer")
+st.caption("Upload a research paper (PDF) to extract core hypotheses, mathematical models, and datasets using Groq AI.")
+
+# Sidebar for API Key input
+with st.sidebar:
+    st.header("Settings")
+    api_key = st.text_input("Groq API Key", type="password", help="Enter your gsk_... key here")
+    st.markdown("---")
+    st.markdown("Developed with Streamlit & Groq API")
+
+def extract_pdf_text(uploaded_file) -> str:
+    reader = PdfReader(uploaded_file)
+    text = ""
+    for page in reader.pages:
+        extracted = page.extract_text()
+        if extracted:
+            text += extracted + "\n"
+    return text
+
+def analyze_paper(paper_text: str, key: str) -> str:
+    client = Groq(api_key=key)
+    
+    # Auto-select available model
+    try:
+        available_models = [m.id for m in client.models.list().data]
+        preferred = ["llama-3.3-70b-versatile", "openai/gpt-oss-20b", "llama-3.1-8b-instant", "llama3-8b-8192"]
+        chosen_model = next((m for m in preferred if m in available_models), available_models[0])
+    except Exception:
+        chosen_model = "llama-3.1-8b-instant"
+
+    prompt = f"""
+    You are an expert STEM research assistant. Analyze the following research paper text.
+    
+    Provide a clear, easy-to-read breakdown in Markdown format using these sections:
+    
+    ## 🎯 1. Core Objective & Hypothesis
+    Summarize what the authors are trying to achieve and their main hypotheses in plain language.
+    
+    ## 📐 2. Key Mathematical Equations
+    List all key mathematical equations using LaTeX notation ($$...$$ for display equations and $...$ for inline terms). Define all variables clearly.
+    
+    ## ⚙️ 3. Methodology & Design Setup
+    Explain the step-by-step experimental design, materials, and measurement procedures. Use markdown tables where appropriate.
+    
+    ## 📊 4. Key Results & Performance Comparisons
+    Summarize the main quantitative results, comparative data, and metrics.
+    
+    ## ⚠️ 5. Limitations & Future Applications
+    Highlight system constraints and real-world use cases.
+
+    Paper Text:
+    {paper_text[:25000]}
+    """
+    
+    response = client.chat.completions.create(
+        messages=[{"role": "user", "content": prompt}],
+        model=chosen_model,
+    )
+    return response.choices[0].message.content
+
+# Main UI layout
+uploaded_file = st.file_uploader("Drop your PDF research paper here", type=["pdf"])
+
+if uploaded_file is not None:
+    st.success(f"File loaded: **{uploaded_file.name}**")
+    
+    if st.button("🚀 Summarize Paper", type="primary"):
+        if not api_key:
+            st.error("Please enter your Groq API Key in the left sidebar first!")
+        else:
+            with st.spinner("Extracting text and analyzing paper with Groq..."):
+                try:
+                    pdf_text = extract_pdf_text(uploaded_file)
+                    summary = analyze_paper(pdf_text, api_key)
+                    
+                    st.markdown("---")
+                    st.subheader("📋 Research Paper Summary")
+                    st.markdown(summary)
+                except Exception as e:
+                    st.error(f"An error occurred: {e}")
