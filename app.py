@@ -29,6 +29,15 @@ def extract_pdf_text(uploaded_file) -> str:
 def analyze_paper(paper_text: str, key: str) -> str:
     client = Groq(api_key=key)
 
+    # Automatically fetch available active models to prevent 404 errors
+    try:
+        available_models = [m.id for m in client.models.list().data]
+        # Prefer llama 70b/8b variants if present, otherwise grab the first active model
+        preferred = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "llama3-70b-8192", "llama3-8b-8192", "mixtral-8x7b-32768"]
+        chosen_model = next((m for m in preferred if m in available_models), available_models[0])
+    except Exception:
+        chosen_model = "llama3-8b-8192"
+
     prompt = f"""
     You are an expert STEM research assistant. Analyze the provided research paper text thoroughly.
 
@@ -59,12 +68,12 @@ def analyze_paper(paper_text: str, key: str) -> str:
     Summarize constraints, trade-offs, and practical real-world applications.
 
     Paper Text:
-    {paper_text[:15000]}
+    {paper_text[:14000]}
     """
     
     response = client.chat.completions.create(
         messages=[{"role": "user", "content": prompt}],
-        model="llama-3.1-8b-instant",  # Reliable free-tier Groq model
+        model=chosen_model,
         max_tokens=3000,
         temperature=0.2
     )
