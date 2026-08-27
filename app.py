@@ -59,13 +59,13 @@ def analyze_paper(paper_text: str, key: str) -> str:
     Summarize constraints, trade-offs, and practical real-world applications.
 
     Paper Text:
-    {paper_text[:18000]}
+    {paper_text[:15000]}
     """
     
     response = client.chat.completions.create(
         messages=[{"role": "user", "content": prompt}],
-        model="llama-3.3-70b-versatile",  # High token capacity model on Groq
-        max_tokens=3500,
+        model="llama-3.1-8b-instant",  # Reliable free-tier Groq model
+        max_tokens=3000,
         temperature=0.2
     )
     return response.choices[0].message.content
