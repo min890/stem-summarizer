@@ -70,13 +70,13 @@ def analyze_paper(paper_text: str, key: str) -> str:
     Constraints and real-world applications.
 
     Paper Text:
-    {paper_text[:12000]}
+    {paper_text[:10000]}
     """
     
     response = client.chat.completions.create(
         messages=[{"role": "user", "content": prompt}],
         model=chosen_model,
-        max_tokens=2500,
+        max_tokens=2000,
         temperature=0.2
     )
     return response.choices[0].message.content
@@ -98,7 +98,7 @@ def extract_metrics_and_glossary(paper_text: str, key: str):
     }}
 
     Text excerpt:
-    {paper_text[:8000]}
+    {paper_text[:6000]}
     """
 
     try:
@@ -145,7 +145,7 @@ with tab1:
                     st.session_state['chat_history'] = []
 
     if 'summary' in st.session_state:
-        # FEATURE 3: Metrics Dashboard
+        # Metrics Dashboard
         st.markdown("---")
         st.subheader("📊 Key Performance Metrics")
         m = st.session_state.get('metrics', {})
@@ -159,14 +159,14 @@ with tab1:
         st.subheader("📋 Comprehensive Summary")
         st.markdown(st.session_state['summary'])
 
-        # FEATURE 3: Interactive Glossary
+        # Interactive Glossary
         glossary = m.get("glossary", [])
         if glossary:
             with st.expander("📖 Technical Glossary & Acronyms"):
                 for g in glossary:
                     st.markdown(f"**{g.get('term')}**: {g.get('definition')}")
 
-        # FEATURE 2: Export & Download Options
+        # Export & Download Options
         st.markdown("---")
         st.subheader("💾 Export & Copy Tools")
         ex_col1, ex_col2 = st.columns(2)
@@ -185,7 +185,7 @@ with tab1:
                 eq_text = "\n".join(equations) if equations else "No stand-alone LaTeX blocks detected."
                 st.code(eq_text, language="latex")
 
-        # FEATURE 1: Interactive Chat with Paper
+        # Interactive Chat with Paper
         st.markdown("---")
         st.subheader("💬 Chat with this Paper")
         
@@ -201,17 +201,20 @@ with tab1:
 
             with st.chat_message("assistant"):
                 with st.spinner("Searching paper context..."):
-                    client = get_groq_client(api_key)
-                    model = get_active_model(client)
-                    chat_prompt = f"Paper Context:\n{st.session_state['pdf_text'][:12000]}\n\nUser Question: {user_query}"
-                    res = client.chat.completions.create(
-                        messages=[{"role": "user", "content": chat_prompt}],
-                        model=model,
-                        max_tokens=800
-                    )
-                    ans = res.choices[0].message.content
-                    st.markdown(ans)
-                    st.session_state['chat_history'].append({"role": "assistant", "content": ans})
+                    try:
+                        client = get_groq_client(api_key)
+                        model = get_active_model(client)
+                        chat_prompt = f"Paper Context:\n{st.session_state['pdf_text'][:8000]}\n\nUser Question: {user_query}"
+                        res = client.chat.completions.create(
+                            messages=[{"role": "user", "content": chat_prompt}],
+                            model=model,
+                            max_tokens=600
+                        )
+                        ans = res.choices[0].message.content
+                        st.markdown(ans)
+                        st.session_state['chat_history'].append({"role": "assistant", "content": ans})
+                    except Exception as e:
+                        st.error(f"Error answering query: {e}")
 
 # ==================== TAB 2: PAPER COMPARISON ====================
 with tab2:
@@ -230,38 +233,42 @@ with tab2:
                 st.error("Please enter your Groq API Key first!")
             else:
                 with st.spinner("Extracting and comparing both papers..."):
-                    txt1 = extract_pdf_text(paper1)[:8000]
-                    txt2 = extract_pdf_text(paper2)[:8000]
+                    try:
+                        # Trim to 5000 chars per paper to stay safely below token limits
+                        txt1 = extract_pdf_text(paper1)[:5000]
+                        txt2 = extract_pdf_text(paper2)[:5000]
 
-                    client = get_groq_client(api_key)
-                    model = get_active_model(client)
-                    
-                    cmp_prompt = f"""
-                    Compare these two papers in a structured Markdown comparison format:
+                        client = get_groq_client(api_key)
+                        model = get_active_model(client)
+                        
+                        cmp_prompt = f"""
+                        Compare these two research papers in Markdown:
 
-                    ### ⚔️ Direct Comparison Table
-                    | Metric / Feature | Paper A ({paper1.name}) | Paper B ({paper2.name}) |
-                    |---|---|---|
-                    | Core Objective | ... | ... |
-                    | Primary Material/Method | ... | ... |
-                    | Efficiency / Performance | ... | ... |
-                    | Key Limitation | ... | ... |
+                        ### ⚔️ Direct Comparison Table
+                        | Metric / Feature | Paper A ({paper1.name}) | Paper B ({paper2.name}) |
+                        |---|---|---|
+                        | Core Objective | ... | ... |
+                        | Primary Material/Method | ... | ... |
+                        | Efficiency / Performance | ... | ... |
+                        | Key Limitation | ... | ... |
 
-                    ### 📝 Key Differences & Synthesis
-                    - Highlight 3 key technical differences.
-                    - State which paper achieves better quantitative performance and why.
+                        ### 📝 Key Differences & Synthesis
+                        - Highlight 3 key technical differences.
+                        - State which paper achieves better quantitative performance and why.
 
-                    Paper A Text:
-                    {txt1}
+                        Paper A Text:
+                        {txt1}
 
-                    Paper B Text:
-                    {txt2}
-                    """
+                        Paper B Text:
+                        {txt2}
+                        """
 
-                    res = client.chat.completions.create(
-                        messages=[{"role": "user", "content": cmp_prompt}],
-                        model=model,
-                        max_tokens=2000
-                    )
-                    st.markdown("---")
-                    st.markdown(res.choices[0].message.content)
+                        res = client.chat.completions.create(
+                            messages=[{"role": "user", "content": cmp_prompt}],
+                            model=model,
+                            max_tokens=1500
+                        )
+                        st.markdown("---")
+                        st.markdown(res.choices[0].message.content)
+                    except Exception as e:
+                        st.error(f"Comparison error: {e}")
