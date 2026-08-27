@@ -29,14 +29,17 @@ def extract_pdf_text(uploaded_file) -> str:
 def analyze_paper(paper_text: str, key: str) -> str:
     client = Groq(api_key=key)
 
-    # Pick only full text-generation models, avoiding small embedding models
-    target_models = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "llama3-70b-8192", "llama3-8b-8192"]
+    # Fetch active models dynamically from your API key
+    all_models = client.models.list().data
     
-    try:
-        available = [m.id for m in client.models.list().data]
-        chosen_model = next((m for m in target_models if m in available), "llama-3.1-8b-instant")
-    except Exception:
-        chosen_model = "llama-3.1-8b-instant"
+    # Filter out whisper/audio/vision/embedding models to pick a text model
+    valid_models = [m.id for m in all_models if "whisper" not in m.id and "safetensors" not in m.id and "vision" not in m.id]
+    
+    if not valid_models:
+        raise Exception("No valid text completion models found on your Groq account.")
+
+    # Select the first available text model automatically
+    chosen_model = valid_models[0]
 
     prompt = f"""
     You are an expert STEM research assistant. Analyze the provided research paper text thoroughly.
