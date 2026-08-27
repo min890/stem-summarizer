@@ -32,11 +32,23 @@ def get_groq_client(key: str):
 
 def get_active_model(client):
     try:
-        all_models = client.models.list().data
-        valid_models = [m.id for m in all_models if "whisper" not in m.id and "safetensors" not in m.id and "vision" not in m.id]
-        return valid_models[0] if valid_models else "llama3-8b-8192"
+        all_models = [m.id for m in client.models.list().data]
+        # Priority list of full-sized text models (8k+ context windows)
+        preferred = [
+            "llama-3.3-70b-versatile", 
+            "llama-3.1-8b-instant", 
+            "llama3-70b-8192", 
+            "llama3-8b-8192",
+            "mixtral-8x7b-32768"
+        ]
+        for model in preferred:
+            if model in all_models:
+                return model
+        # Fallback to first non-guard/non-whisper model
+        valid = [m for m in all_models if "guard" not in m and "whisper" not in m and "safetensors" not in m]
+        return valid[0] if valid else "llama-3.1-8b-instant"
     except Exception:
-        return "llama3-8b-8192"
+        return "llama-3.1-8b-instant"
 
 def analyze_paper(paper_text: str, key: str) -> str:
     client = get_groq_client(key)
