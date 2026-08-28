@@ -113,12 +113,12 @@ def extract_metrics_and_glossary(paper_text: str, key: str):
         }
         
     def generate_tts_audio(text: str) -> bytes:
-    clean_text = re.sub(r'[*#$\\]', '', text)
-    tts = gTTS(text=clean_text[:500], lang='en')
-    audio_fp = io.BytesIO()
-    tts.write_to_fp(audio_fp)
-    audio_fp.seek(0)
-    return audio_fp.read()
+        clean_text = re.sub(r'[*#$\\]', '', text)
+        tts = gTTS(text=clean_text[:500], lang='en')
+        audio_fp = io.BytesIO()
+        tts.write_to_fp(audio_fp)
+        audio_fp.seek(0)
+        return audio_fp.read()
 
 # Navigation Tabs
 tab1, tab2, tab3 = st.tabs(["📄 Single Paper Analyzer", "⚖️ Compare Two Papers", "📂 Multi-Paper Batch Summarizer"])
