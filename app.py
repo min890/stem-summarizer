@@ -90,7 +90,7 @@ def extract_metrics_and_glossary(paper_text: str, key: str):
     client = get_groq_client(key)
     chosen_model = get_active_model(client)
     
-        prompt = f"""
+    prompt = f"""
     Analyze the text and output raw JSON ONLY with no markdown wrappers or formatting:
     {{
     "efficiency": "e.g., 76%",
