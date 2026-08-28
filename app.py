@@ -158,7 +158,7 @@ with tab1:
     raw_json = extract_metrics_and_glossary(pdf_text, api_key)
 
                     # Strip out markdown backticks so json.loads can parse it properly
-                if not raw_json or not isinstance(raw_json, str):
+            if not raw_json or not isinstance(raw_json, str):
                         clean_json = "{}"
                     else:
                         clean_json = raw_json.replace("```json", "").replace("```", "").strip()
