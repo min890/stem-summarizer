@@ -80,7 +80,10 @@ def analyze_paper(paper_text, key, persona_choice, preset_focus=None):
     """
     
         try:
-            response = client.chat.completions.create(...)
+    response = client.chat.completions.create(
+    messages=[{"role": "user", "content": prompt}],
+    model=chosen_model
+)
             return response.choices[0].message.content
         except Exception as e:
             st.error(f"Groq API Error: {str(e)}")
