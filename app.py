@@ -155,28 +155,27 @@ with tab1:
                     summary = analyze_paper(pdf_text, api_key, persona, preset_focus=preset)
                     st.session_state['summary'] = summary
                     
-    raw_json = extract_metrics_and_glossary(pdf_text, api_key)
+raw_json = extract_metrics_and_glossary(pdf_text, api_key)
+    if isinstance(raw_json, str):
+        clean_json = raw_json.replace("```json", "").replace("```", "").strip()
+    else:
+        clean_json = "{}"
 
-if isinstance(raw_json, str):
-    clean_json = raw_json.replace("```json", "").replace("```", "").strip()
-else:
-    clean_json = "{}"
+    try:
+        metrics_data = json.loads(clean_json)
+    except Exception:
+        metrics_data = {}
 
-try:
-    metrics_data = json.loads(clean_json)
-except Exception:
-    metrics_data = {}
-
-st.session_state['metrics'] = metrics_data
-st.session_state['chat_history'] = []
-        # TL;DR Executive Audio Section
-        m = st.session_state.get('metrics', {})
-        tldr_text = m.get("tldr", "No TLDR generated.")
+    st.session_state['metrics'] = metrics_data
+    st.session_state['chat_history'] = []
+# TL;DR Executive Audio Section
+m = st.session_state.get('metrics', {})
+tldr_text = m.get("tldr", "No TLDR generated.")
         
-        st.markdown("---")
-        st.subheader("⚡ Executive Audio Briefing (TL;DR)")
-        st.info(f"**TL;DR Summary:** {tldr_text}")
-        if st.button("🔊 Generate Audio Summary"):
+st.markdown("---")
+st.subheader("⚡ Executive Audio Briefing (TL;DR)")
+st.info(f"**TL;DR Summary:** {tldr_text}")
+if st.button("🔊 Generate Audio Summary"):
             with st.spinner("Generating audio snippet..."):
                 audio_bytes = generate_tts_audio(tldr_text)
                 st.audio(audio_bytes, format="audio/mp3")
