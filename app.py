@@ -155,18 +155,21 @@ with tab1:
                     summary = analyze_paper(pdf_text, api_key, persona, preset_focus=preset)
                     st.session_state['summary'] = summary
                     
-                    raw_json = extract_metrics_and_glossary(pdf_text, api_key)
-                
-# Strip out markdown backticks so json.loads can parse it properly
-                clean_json = raw_json.replace("```json", "").replace("```", "").strip()
+    raw_json = extract_metrics_and_glossary(pdf_text, api_key)
 
-                try:
-                    metrics_data = json.loads(clean_json)
-                except Exception:
-                    metrics_data = {}
+                    # Strip out markdown backticks so json.loads can parse it properly
+                    if not raw_json or not isinstance(raw_json, str):
+                        clean_json = "{}"
+                    else:
+                        clean_json = raw_json.replace("```json", "").replace("```", "").strip()
 
-                st.session_state['metrics'] = metrics_data
-                st.session_state['chat_history'] = []
+                    try:
+                        metrics_data = json.loads(clean_json)
+                    except Exception:
+                        metrics_data = {}
+
+                    st.session_state['metrics'] = metrics_data
+                    st.session_state['chat_history'] = []
 
     if 'summary' in st.session_state:
         # TL;DR Executive Audio Section
