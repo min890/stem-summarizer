@@ -53,51 +53,35 @@ def extract_pdf_text(uploaded_file) -> str:
         if extracted:
             text += extracted + "\n"
     return text
-def analyze_paper(paper_text: str, key: str, persona_choice: str, preset_focus: str = None) -> str:
-    # Limit text length to prevent context limit errors (e.g., first 12,000 characters)
-    paper_text = paper_text[:6000]
-    client = get_groq_client(key)
-    chosen_model = get_active_model(client)
-    persona_instruction = get_persona_prompt_modifier(persona_choice)
+def get_persona_prompt_modifier(persona_choice: str) -> str:
+    persona_map = {
+        "Standard STEM Expert": "Maintain strict scientific rigor and technical accuracy.",
+        "Explain Like I'm an Undergrad": "Explain concepts clearly with intuitive analogies suitable for an undergraduate student.",
+        "Strict Math & Proofs Focus": "Focus heavily on formal mathematical derivations, equations, and proofs.",
+        "Commercial & Business Viability": "Analyze from a product/market lens, focusing on scalability and commercial potential."
+    }
+    return persona_map.get(persona_choice, "Maintain strict scientific rigor.")
+def analyze_paper(paper_text, key, persona_choice, preset_focus=None):
+prompt = f"""
+You are an expert STEM research assistant. Analyze the provided research paper text thoroughly.
+{persona_instruction}
+{focus_instruction}
 
-    focus_instruction = ""
-    if preset_focus == "methodology":
-        focus_instruction = "SPECIAL REQUEST: Focus predominantly on Section 3 (Experimental Setup & Methodology)."
-    elif preset_focus == "data_tables":
-        focus_instruction = "SPECIAL REQUEST: Focus predominantly on Section 4 (Key Results & Performance Data)."
+STRICT FORMATTING LAWS FOR MATHEMATICS:
+- NEVER use \\boxed{{}}, \\tag{{}}, \\displaystyle, \\bigl, \\Bigr, or square brackets \\[ \\].
+- Display equations MUST use double dollar signs on their own line:
+  $$ equation $$
+- Inline symbols/variables MUST use single dollar signs:
+  $\\eta$, $\\Delta m$, $P_s$, etc.
 
-    prompt = f"""
-    You are an expert STEM research assistant. Analyze the provided research paper text thoroughly.
-    {persona_instruction}
-    {focus_instruction}
+STRUCTURE YOUR OUTPUT WITH THESE HEADERS:
+## 🎯 1. Core Objective & Hypothesis
+...
 
-    STRICT FORMATTING LAWS FOR MATHEMATICS:
-    - NEVER use \\boxed{{}}, \\tag{{}}, \\displaystyle, \\bigl, \\Bigr, or square brackets \\[ \\].
-    - Display equations MUST use double dollar signs on their own line:
-      $$ equation $$
-    - Inline symbols/variables MUST use single dollar signs:
-      $\\eta$, $\\Delta m$, $P_s$, etc.
+PAPER TEXT:
+{paper_text}
+"""
 
-    STRUCTURE YOUR OUTPUT WITH THESE HEADERS:
-
-    ## 🎯 1. Core Objective & Hypothesis
-    Summary of problem and hypothesis.
-
-    ## 📐 2. Key Mathematical Equations & Variable Definitions
-    Equations in $$...$$ syntax and inline variable definitions.
-
-    ## ⚙️ 3. Experimental Setup & Methodology
-    Step-by-step procedure and materials.
-
-    ## 📊 4. Key Results & Performance Comparisons
-    Data comparisons and quantitative highlights.
-
-    ## ⚠️ 5. Limitations & Practical Applications
-    Constraints and real-world applications.
-
-    Paper Text:
-    {paper_text[:10000]}
-    """
     try:
         response = client.chat.completions.create(
             model=chosen_model,
@@ -110,37 +94,37 @@ def analyze_paper(paper_text: str, key: str, persona_choice: str, preset_focus: 
         return "Error generating analysis."
 
 def extract_metrics_and_glossary(paper_text: str, key: str):
-    client = get_groq_client(key)
-    chosen_model = get_active_model(client)
+client = get_groq_client(key)
+chosen_model = get_active_model(client)
 
-    prompt = f"""
-    Analyze the text and output raw JSON ONLY with no markdown wrappers or formatting:
-    {{
-      "efficiency": "e.g., 76%",
-      "evap_rate": "e.g., 0.22 kg m^-2 h^-1",
-      "primary_material": "e.g., Carbon Black / Linen",
-      "tldr": "A 2-sentence executive summary of the paper core finding.",
-      "glossary": [
-        {{"term": "AES", "definition": "Acoustically Enhanced System"}},
-        {{"term": "FES", "definition": "Floating Evaporation System"}}
-      ]
-    }}
+prompt = f"""
+Analyze the text and output raw JSON ONLY with no markdown wrappers or formatting:
+{{
+"efficiency": "e.g., 76%",
+"evap_rate": "e.g., 0.22 kg m^-2 h^-1",
+"primary_material": "e.g., Carbon Black / Linen",
+"tldr": "A 2-sentence executive summary of the paper core finding.",
+"glossary": [
+{{"term": "AES", "definition": "Acoustically Enhanced System"}},
+{{"term": "FES", "definition": "Floating Evaporation System"}}
+]
+}}
 
-    Text excerpt:
-    {paper_text[:6000]}
-    """
+Text excerpt:
+{paper_text[:6000]}
+"""
 
-    try:
-        response = client.chat.completions.create(
-            messages=[{"role": "user", "content": prompt}],
-            model=chosen_model,
-            max_tokens=800,
-            temperature=0.1
-        )
-        clean_json = response.choices[0].message.content.strip().replace("```json", "").replace("```", "")
-        return json.loads(clean_json)
-    except Exception:
-        return {
+try:
+response = client.chat.completions.create(
+    messages=[{"role": "user", "content": prompt}],
+    model=chosen_model,
+    max_tokens=800,
+    temperature=0.1
+)
+clean_json = response.choices[0].message.content.strip().replace("```json", "").replace("```", "")
+return json.loads(clean_json)
+except Exception:
+    return {
             "efficiency": "N/A",
             "evap_rate": "N/A",
             "primary_material": "N/A",
