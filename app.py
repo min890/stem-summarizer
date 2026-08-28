@@ -118,17 +118,16 @@ def analyze_paper(paper_text: str, key: str, persona_choice: str, preset_focus: 
     {paper_text[:10000]}
     """
     
-   try:
-    response = client.chat.completions.create(
-        model=chosen_model,
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.2
-    )
-    return response.choices[0].message.content
-except Exception as e:
-    # This will display the EXACT error message from Groq right on your Streamlit page!
-    st.error(f"Groq API Error: {str(e)}")
-    return "Error generating analysis."
+  try:
+        response = client.chat.completions.create(
+            model=chosen_model,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.2
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        st.error(f"Groq API Error: {str(e)}")
+        return "Error generating analysis."
 
 def extract_metrics_and_glossary(paper_text: str, key: str):
     client = get_groq_client(key)
