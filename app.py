@@ -86,46 +86,33 @@ def analyze_paper(paper_text, key, persona_choice, preset_focus=None):
             st.error(f"Groq API Error: {str(e)}")
             return "Error generating analysis."
 
-    def extract_metrics_and_glossary(paper_text: str, key: str):
+def extract_metrics_and_glossary(paper_text: str, key: str):
     client = get_groq_client(key)
     chosen_model = get_active_model(client)
     
-    prompt = f"""
+        prompt = f"""
     Analyze the text and output raw JSON ONLY with no markdown wrappers or formatting:
     {{
     "efficiency": "e.g., 76%",
-    "evap_rate": "e.g., 0.22 kg m^-2 h^-1",
-    "primary_material": "e.g., Carbon Black / Linen",
-    "tldr": "A 2-sentence executive summary of the paper core finding.",
-    "glossary": [
-    {{"term": "AES", "definition": "Acoustically Enhanced System"}},
-    {{"term": "FES", "definition": "Floating Evaporation System"}}
-    ]
-    }}
-    
-    Text excerpt:
-    {paper_text[:6000]}
+    ...
     """
     
     try:
-    response = client.chat.completions.create(
-        messages=[{"role": "user", "content": prompt}],
-        model=chosen_model,
-        max_tokens=800,
-        temperature=0.1
-    )
-    clean_json = response.choices[0].message.content.strip().replace("```json", "").replace("```", "")
-    return json.loads(clean_json)
-    except Exception:
+        response = client.chat.completions.create(
+            messages=[{"role": "user", "content": prompt}],
+            model=chosen_model,
+            max_tokens=800,
+            temperature=0.1
+        )
+        clean_json = response.choices[0].message.content.strip().replace("```json", "").replace("```", "")
+        return json.loads(clean_json)
+     except Exception:
         return {
-                "efficiency": "N/A",
-                "evap_rate": "N/A",
-                "primary_material": "N/A",
-                "tldr": "Summary unavailable.",
-                "glossary": []
-            }
-
-def generate_tts_audio(text: str) -> bytes:
+            "efficiency": "N/A",
+            "evap_rate": "N/A"
+        }
+        
+    def generate_tts_audio(text: str) -> bytes:
     clean_text = re.sub(r'[*#$\\]', '', text)
     tts = gTTS(text=clean_text[:500], lang='en')
     audio_fp = io.BytesIO()
