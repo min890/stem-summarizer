@@ -157,16 +157,16 @@ with tab1:
                     
                     raw_json = extract_metrics_and_glossary(pdf_text, api_key)
                 
-                # Strip out markdown backticks so json.loads can parse it properly
+# Strip out markdown backticks so json.loads can parse it properly
                 clean_json = raw_json.replace("```json", "").replace("```", "").strip()
-                
+
                 try:
                     metrics_data = json.loads(clean_json)
                 except Exception:
                     metrics_data = {}
 
                 st.session_state['metrics'] = metrics_data
-                    st.session_state['chat_history'] = []
+                st.session_state['chat_history'] = []
 
     if 'summary' in st.session_state:
         # TL;DR Executive Audio Section
