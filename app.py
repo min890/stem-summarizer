@@ -156,7 +156,7 @@ with tab1:
                     st.session_state['summary'] = summary
                     
 raw_json = extract_metrics_and_glossary(pdf_text, api_key)
-if isinstance(raw_json, str):
+    if isinstance(raw_json, str):
         clean_json = raw_json.replace("```json", "").replace("```", "").strip()
     else:
         clean_json = "{}"
