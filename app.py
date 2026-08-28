@@ -63,24 +63,24 @@ def get_persona_prompt_modifier(persona_choice: str) -> str:
     return persona_map.get(persona_choice, "Maintain strict scientific rigor.")
 
 def analyze_paper(paper_text, key, persona_choice, preset_focus=None):
-        client = get_groq_client(key)
-        chosen_model = get_active_model(client)
-    
-        persona_instruction = get_persona_prompt_modifier(persona_choice)
-    
-        focus_instruction = ""
-        if preset_focus == "methodology":
-            focus_instruction = "SPECIAL REQUEST: Focus predominantly on Section 3 (Experimental Setup & Methodology)."
-        elif preset_focus == "data_tables":
-            focus_instruction = "SPECIAL REQUEST: Focus predominantly on Section 4 (Key Results & Performance Data)."
-    
-        prompt = f"""
-    You are an expert STEM research assistant.
-    ...
-    """
-    
-        try:
-            response = client.chat.completions.create(
+    client = get_groq_client(key)
+    chosen_model = get_active_model(client)
+
+    persona_instruction = get_persona_prompt_modifier(persona_choice)
+
+    focus_instruction = ""
+    if preset_focus == "methodology":
+        focus_instruction = "SPECIAL REQUEST: Focus predominantly on Section 3 (Experimental Setup & Methodology)."
+    elif preset_focus == "data_tables":
+        focus_instruction = "SPECIAL REQUEST: Focus predominantly on Section 4 (Key Results & Performance Data)."
+
+    prompt = f"""
+You are an expert STEM research assistant.
+...
+"""
+
+    try:
+        response = client.chat.completions.create(
             messages=[{"role": "user", "content": prompt}],
             model=chosen_model
         )
@@ -88,6 +88,7 @@ def analyze_paper(paper_text, key, persona_choice, preset_focus=None):
     except Exception as e:
         st.error(f"Groq API Error: {str(e)}")
         return "Error generating analysis."
+
 def extract_metrics_and_glossary(paper_text: str, key: str):
     client = get_groq_client(key)
     chosen_model = get_active_model(client)
