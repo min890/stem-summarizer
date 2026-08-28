@@ -106,7 +106,7 @@ def extract_metrics_and_glossary(paper_text: str, key: str):
         )
         clean_json = response.choices[0].message.content.strip().replace("```json", "").replace("```", "")
         return json.loads(clean_json)
-     except Exception:
+    except Exception:
         return {
             "efficiency": "N/A",
             "evap_rate": "N/A"
