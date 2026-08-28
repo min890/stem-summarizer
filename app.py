@@ -54,7 +54,6 @@ def get_active_model(client):
             "llama-3.3-70b-versatile", 
             "llama-3.1-8b-instant", 
             "llama3-70b-8192", 
-            "llama3-8b-8192",
             "mixtral-8x7b-32768"
         ]
         for model in preferred:
@@ -76,7 +75,7 @@ def get_persona_prompt_modifier(persona_choice: str) -> str:
 
 def analyze_paper(paper_text: str, key: str, persona_choice: str, preset_focus: str = None) -> str:
     # Limit text length to prevent context limit errors (e.g., first 12,000 characters)
-    paper_text = paper_text[:12000]
+    paper_text = paper_text[:6000]
     client = get_groq_client(key)
     chosen_model = get_active_model(client)
     persona_instruction = get_persona_prompt_modifier(persona_choice)
