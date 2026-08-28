@@ -75,6 +75,8 @@ def get_persona_prompt_modifier(persona_choice: str) -> str:
     return "ADAPTATION: Provide an authoritative, rigorous, professional STEM expert analysis."
 
 def analyze_paper(paper_text: str, key: str, persona_choice: str, preset_focus: str = None) -> str:
+    # Limit text length to prevent context limit errors (e.g., first 12,000 characters)
+    paper_text = paper_text[:12000]
     client = get_groq_client(key)
     chosen_model = get_active_model(client)
     persona_instruction = get_persona_prompt_modifier(persona_choice)
