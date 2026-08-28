@@ -80,15 +80,14 @@ def analyze_paper(paper_text, key, persona_choice, preset_focus=None):
     """
     
         try:
-    response = client.chat.completions.create(
-    messages=[{"role": "user", "content": prompt}],
-    model=chosen_model
-)
-            return response.choices[0].message.content
-        except Exception as e:
-            st.error(f"Groq API Error: {str(e)}")
-            return "Error generating analysis."
-
+            response = client.chat.completions.create(
+            messages=[{"role": "user", "content": prompt}],
+            model=chosen_model
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        st.error(f"Groq API Error: {str(e)}")
+        return "Error generating analysis."
 def extract_metrics_and_glossary(paper_text: str, key: str):
     client = get_groq_client(key)
     chosen_model = get_active_model(client)
