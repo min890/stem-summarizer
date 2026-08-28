@@ -188,19 +188,20 @@ if m:
 st.markdown("---")
 st.subheader("📜 Comprehensive Summary")
 st.markdown(st.session_state['summary'])
-        # Text Search & Highlight Tool
-        st.markdown("---")
-        st.subheader("🔍 Search Paper Snippets")
-        search_query = st.text_input("Enter a keyword to search within this paper (e.g., 'efficiency', 'laser', 'method'):")
-        if search_query and 'pdf_text' in st.session_state:
-            lines = st.session_state['pdf_text'].splitlines()
-            matches = [line for line in lines if search_query.lower() in line.lower()]
-            if matches:
-                st.success(f"Found {len(matches)} matching snippet(s):")
-                for i, match in enumerate(matches[:5], 1):
-                    st.markdown(f"**{i}.** ...{match.strip()}...")
-            else:
-                st.warning("No direct snippet matches found.")
+# Text Search & Highlight Tool
+st.markdown("---")
+st.subheader("🔍 Search Paper Snippets")
+search_query = st.text_input("Enter a keyword to search within this paper (e.g., 'efficiency', 'laser', 'method'):")
+
+if search_query and 'pdf_text' in st.session_state:
+    lines = st.session_state['pdf_text'].splitlines()
+    matches = [line for line in lines if search_query.lower() in line.lower()]
+    if matches:
+        st.success(f"Found {len(matches)} matching snippet(s):")
+        for i, match in enumerate(matches[:5], 1):
+            st.markdown(f"**{i}.** ...{match.strip()}...")
+    else:
+        st.warning("No direct snippet matches found.")
 
         # Interactive Glossary
         glossary = m.get("glossary", [])
