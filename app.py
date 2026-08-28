@@ -1,3 +1,4 @@
+import json
 import streamlit as st
 from pypdf import PdfReader
 from groq import Groq
@@ -154,8 +155,17 @@ with tab1:
                     summary = analyze_paper(pdf_text, api_key, persona, preset_focus=preset)
                     st.session_state['summary'] = summary
                     
-                    metrics_data = extract_metrics_and_glossary(pdf_text, api_key)
-                    st.session_state['metrics'] = metrics_data
+                    raw_json = extract_metrics_and_glossary(pdf_text, api_key)
+                
+                # Strip out markdown backticks so json.loads can parse it properly
+                clean_json = raw_json.replace("```json", "").replace("```", "").strip()
+                
+                try:
+                    metrics_data = json.loads(clean_json)
+                except Exception:
+                    metrics_data = {}
+
+                st.session_state['metrics'] = metrics_data
                     st.session_state['chat_history'] = []
 
     if 'summary' in st.session_state:
