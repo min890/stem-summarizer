@@ -155,7 +155,7 @@ with tab1:
                     summary = analyze_paper(pdf_text, api_key, persona, preset_focus=preset)
                     st.session_state['summary'] = summary
                     
-    raw_json = extract_metrics_and_glossary(pdf_text, api_key)
+            raw_json = extract_metrics_and_glossary(pdf_text, api_key)
                 
                 if not raw_json or not isinstance(raw_json, str):
                     clean_json = "{}"
