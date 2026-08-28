@@ -168,19 +168,26 @@ with tab1:
                 audio_bytes = generate_tts_audio(tldr_text)
                 st.audio(audio_bytes, format="audio/mp3")
 
-        # Metrics Dashboard
-        st.markdown("---")
-        st.subheader("📊 Key Performance Metrics")
-        col1, col2, col3 = st.columns(3)
-        col1.metric("Peak Efficiency", m.get("efficiency", "N/A"))
-        col2.metric("Evaporation Rate", m.get("evap_rate", "N/A"))
-        col3.metric("Primary Material", m.get("primary_material", "N/A"))
+# Metrics Dashboard
+st.markdown("---")
+st.subheader("📊 Key Performance Metrics & Data Table")
 
-        # Main Summary
-        st.markdown("---")
-        st.subheader("📋 Comprehensive Summary")
-        st.markdown(st.session_state['summary'])
+# 1. Standard Metric Cards (Already in your code)
+col1, col2, col3 = st.columns(3)
+col1.metric("Peak Efficiency", m.get("efficiency", "N/A"))
+col2.metric("Evaporation Rate", m.get("evap_rate", "N/A"))
+col3.metric("Primary Material", m.get("primary_material", "N/A"))
 
+# 2. Add an interactive Data Table (NEW)
+if m:
+    # Filter out complex lists like 'glossary' to keep the table clean
+    table_data = {k: v for k, v in m.items() if k != "glossary" and k != "tldr"}
+    st.table(table_data)
+
+# Main Summary
+st.markdown("---")
+st.subheader("📜 Comprehensive Summary")
+st.markdown(st.session_state['summary'])
         # Text Search & Highlight Tool
         st.markdown("---")
         st.subheader("🔍 Search Paper Snippets")
