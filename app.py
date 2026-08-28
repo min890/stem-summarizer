@@ -43,35 +43,6 @@ def extract_pdf_text(uploaded_file) -> str:
         if extracted:
             text += extracted + "\n"
     return text
-
-def get_groq_client(key: str):
-    return Groq(api_key=key)
-
-def get_active_model(client):
-    try:
-        all_models = [m.id for m in client.models.list().data]
-        preferred = [
-            "llama-3.3-70b-versatile", 
-            "llama-3.1-8b-instant", 
-            "mixtral-8x7b-32768"
-        ]
-        for model in preferred:
-            if model in all_models:
-                return model
-        valid = [m for m in all_models if "guard" not in m and "whisper" not in m and "safetensors" not in m]
-        return valid[0] if valid else "llama-3.1-8b-instant"
-    except Exception:
-        return "llama-3.1-8b-instant"
-
-def get_persona_prompt_modifier(persona_choice: str) -> str:
-    if persona_choice == "Explain Like I'm an Undergrad":
-        return "ADAPTATION: Explain concepts in clear, accessible, step-by-step terms suitable for an undergraduate STEM student, maintaining technical accuracy without unnecessary jargon."
-    elif persona_choice == "Strict Math & Proofs Focus":
-        return "ADAPTATION: Focus predominantly on theoretical derivations, primary mathematical models, assumptions, and quantitative formulations."
-    elif persona_choice == "Commercial & Business Viability":
-        return "ADAPTATION: Focus on real-world practical applications, scalability, material costs, patent potential, and commercial viability."
-    return "ADAPTATION: Provide an authoritative, rigorous, professional STEM expert analysis."
-
 def analyze_paper(paper_text: str, key: str, persona_choice: str, preset_focus: str = None) -> str:
     # Limit text length to prevent context limit errors (e.g., first 12,000 characters)
     paper_text = paper_text[:6000]
@@ -117,8 +88,7 @@ def analyze_paper(paper_text: str, key: str, persona_choice: str, preset_focus: 
     Paper Text:
     {paper_text[:10000]}
     """
-    
-  try:
+    try:
         response = client.chat.completions.create(
             model=chosen_model,
             messages=[{"role": "user", "content": prompt}],
