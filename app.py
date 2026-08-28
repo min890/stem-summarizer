@@ -5,7 +5,17 @@ import json
 import re
 from gtts import gTTS
 import io
-
+def get_groq_client(key: str):
+    return Groq(api_key=key)
+def get_active_model(client):
+    try:
+        models = client.models.list()
+        for model in models.data:
+            if "llama" in model.id.lower() or "mixtral" in model.id.lower():
+                return model.id
+        return models.data[0].id if models.data else "llama-3.3-70b-versatile"
+    except Exception:
+        return "llama-3.3-70b-versatile"
 st.set_page_config(
     page_title="STEM Paper Summarizer & Lab Suite",
     page_icon="🧪",
