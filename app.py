@@ -61,37 +61,30 @@ def get_persona_prompt_modifier(persona_choice: str) -> str:
         "Commercial & Business Viability": "Analyze from a product/market lens, focusing on scalability and commercial potential."
     }
     return persona_map.get(persona_choice, "Maintain strict scientific rigor.")
+
 def analyze_paper(paper_text, key, persona_choice, preset_focus=None):
-prompt = f"""
-You are an expert STEM research assistant. Analyze the provided research paper text thoroughly.
-{persona_instruction}
-{focus_instruction}
-
-STRICT FORMATTING LAWS FOR MATHEMATICS:
-- NEVER use \\boxed{{}}, \\tag{{}}, \\displaystyle, \\bigl, \\Bigr, or square brackets \\[ \\].
-- Display equations MUST use double dollar signs on their own line:
-  $$ equation $$
-- Inline symbols/variables MUST use single dollar signs:
-  $\\eta$, $\\Delta m$, $P_s$, etc.
-
-STRUCTURE YOUR OUTPUT WITH THESE HEADERS:
-## 🎯 1. Core Objective & Hypothesis
-...
-
-PAPER TEXT:
-{paper_text}
-"""
-
-    try:
-        response = client.chat.completions.create(
-            model=chosen_model,
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.2
-        )
-        return response.choices[0].message.content
-    except Exception as e:
-        st.error(f"Groq API Error: {str(e)}")
-        return "Error generating analysis."
+        client = get_groq_client(key)
+        chosen_model = get_active_model(client)
+    
+        persona_instruction = get_persona_prompt_modifier(persona_choice)
+    
+        focus_instruction = ""
+        if preset_focus == "methodology":
+            focus_instruction = "SPECIAL REQUEST: Focus predominantly on Section 3 (Experimental Setup & Methodology)."
+        elif preset_focus == "data_tables":
+            focus_instruction = "SPECIAL REQUEST: Focus predominantly on Section 4 (Key Results & Performance Data)."
+    
+        prompt = f"""
+    You are an expert STEM research assistant.
+    ...
+    """
+    
+        try:
+            response = client.chat.completions.create(...)
+            return response.choices[0].message.content
+        except Exception as e:
+            st.error(f"Groq API Error: {str(e)}")
+            return "Error generating analysis."
 
 def extract_metrics_and_glossary(paper_text: str, key: str):
 client = get_groq_client(key)
